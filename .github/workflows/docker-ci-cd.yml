@@ -1,0 +1,40 @@
+# .github/workflows/docker-ci-cd.yml
+name: CI/CD for Docker WebApp
+
+on:
+  push:
+    branches:
+      - main  # Ejecuta el flujo de trabajo en cada push a la rama main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Configura Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Log in a Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Construye y etiqueta la imagen Docker
+      - name: Build and tag Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/webapp-docker-ci-cd:latest
+
+      # Step 5: Ejecuta pruebas (si tuvieras pruebas)
+      - name: Run tests
+        run: |
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/webapp-docker-ci-cd:latest npm test
